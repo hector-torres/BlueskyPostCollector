@@ -1,0 +1,5 @@
+dotenv
+pandas
+bs4
+requests
+sqlalchemy
