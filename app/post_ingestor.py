@@ -43,6 +43,11 @@ class BlueskyIngest:
         self.existing_uuids = self.db.get_existing_uuids()
 
         raw_df = self._collect_posts()
+        # short-circuit if nothing was fetched (or uuid column missing)
+        if raw_df.empty or "uuid" not in raw_df.columns:
+            self.logger.info("No posts collected.")
+            return
+
         new_df = raw_df[~raw_df["uuid"].isin(self.existing_uuids)]
         self.logger.info(f"Found {len(new_df)} new posts")
 
@@ -148,8 +153,8 @@ class BlueskyIngest:
                         "timestamp": rec.get("createdAt", ""),
                         "external_url": rec.get("embed", {}).get("external", {}).get("uri", ""),
                     })
-                self.logger.debug("%s: collected %s posts so far", acct, len(posts))
-                time.sleep(1)
+                # self.logger.debug("%s: collected %s posts so far", acct, len(posts))
+                time.sleep(5)
             except Exception as e:
                 self.logger.error("Error fetching %s: %s", acct, e)
         return pd.DataFrame(posts).drop_duplicates(subset="uuid")
